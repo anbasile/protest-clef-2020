@@ -55,11 +55,10 @@ class Trainer:
 
         train, dev, test = ProtestaData(
             self.data_dir, self.pretrained_model).load()
-        sys.exit()
 
         self.model.fit(
             x=train,
-            epochs=2,
+            epochs=100,
             validation_data=dev,
             callbacks=define_callbacks(self.output_dir))
 
