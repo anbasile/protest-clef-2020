@@ -16,7 +16,11 @@ class SequenceTagger(tf.keras.Model):
 
         self.crf_decoding = crf_decoding
 
-        self.encoder = TFBertModel.from_pretrained(pretrained_model)
+        try:
+            self.encoder = TFBertModel.from_pretrained(pretrained_model)
+        except OSError:
+            self.encoder = TFBertModel.from_pretrained(pretrained_model, from_pt=True)
+
 
         self.num_tags = num_labels
 
@@ -31,6 +35,8 @@ class SequenceTagger(tf.keras.Model):
 
     def call(self, features, training=None):
         net, _ = self.encoder(features, training=False)
+        print(features['input_ids'].shape)
+
         logits = self.output_layer(net)
 
         if not training:
@@ -38,7 +44,8 @@ class SequenceTagger(tf.keras.Model):
                 _, tags_prob = tfa.text.crf_decode(
                     logits,
                     self.transition_params,
-                    [10]*32,  # TODO fix
+                    [features['input_ids'].shape[1]] *
+                    features['input_ids'].shape[0],  # e.g. [512]*32
                 )
             else:
                 tags_prob = tf.nn.softmax(logits)
@@ -58,7 +65,7 @@ class SequenceTagger(tf.keras.Model):
                 log_likelihood, _ = tfa.text.crf_log_likelihood(
                     y_pred,
                     y['output_1'],
-                    [10],  # length TODO fix
+                    [x['input_ids'].shape[1]],  # length e.g. 512
                     transition_params=self.transition_params)
                 batch_size = tf.shape(log_likelihood)[0]
                 loss = tf.reduce_sum(-log_likelihood) / \

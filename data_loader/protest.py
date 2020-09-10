@@ -150,7 +150,7 @@ class Protest(nlp.GeneratorBasedBuilder):
                         }
         elif self.config.name == 'task3':
             if split == 'test':
-                with open(filepath, 'r') as f:
+                with open(filepath, 'r', encoding='utf-8') as f:
                     next(f)  # TODO fix skip first empty row
                     sentence_index = 0
                     tokens = []
@@ -165,20 +165,22 @@ class Protest(nlp.GeneratorBasedBuilder):
                         else:
                             tokens.append(token)
             else:
-                with open(filepath, 'r') as f:
-                    data = csv.reader(f, delimiter='\t')
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    data = csv.reader(f, delimiter='\t', quotechar=None)
                     next(data)  # TODO fix skip first empty row
-                    sentence_index = 1
+                    sentence_index = 0
                     tokens = []
                     tags = []
+
                     for row in data:
                         try:
                             token, tag = row
                         except ValueError:  # empty row
-                            sentence_index += 0
-                            yield sentence_index, {'token': tokens, 'label': tags[:10]}
+                            sentence_index += 1
+                            assert len(tokens) == len(tags)
+                            yield sentence_index, {'token': tokens, 'label': tags}
                             tokens, tags = [], []  # reset for next sentence
-                        if token in ['SAMPLE_START']:
+                        if token in ['SAMPLE_START', '[SEP]']:
                             continue
                         else:
                             tokens.append(token)
