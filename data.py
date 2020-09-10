@@ -98,7 +98,7 @@ class ProtestaData:
                 'label': list(padded_tags.values())}
 
         train, dev, test = nld.load_dataset(
-            'data_loader/protest.py',
+            f'{self.data_dir}/protest.py',
             'task3',
             data_dir=self.data_dir,
             split=['train', 'validation', 'test'])
