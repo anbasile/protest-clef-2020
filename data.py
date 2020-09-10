@@ -38,6 +38,8 @@ class ProtestaData:
 
         LABEL_SENTENCE_PAD = 19
 
+        BATCH_SIZE = 8
+
         def encode_test(examples):
             """
                 TODO for Angelo: describe what is happening here!
@@ -116,7 +118,7 @@ class ProtestaData:
             train['label']).to_tensor(LABEL_SENTENCE_PAD)}
 
         tfds_train = tf.data.Dataset.from_tensor_slices(
-            (train_features, train_target)).batch(32, drop_remainder=True).prefetch(2)
+            (train_features, train_target)).batch(BATCH_SIZE, drop_remainder=True).prefetch(2)
 
         dev_features = {x: tf.ragged.constant(
             dev[x]).to_tensor(0) for x in self.feature_columns}
@@ -125,12 +127,12 @@ class ProtestaData:
             dev['label']).to_tensor(LABEL_SENTENCE_PAD)}
 
         tfds_dev = tf.data.Dataset.from_tensor_slices(
-            (dev_features, dev_target)).batch(32, drop_remainder=True).prefetch(2)
+            (dev_features, dev_target)).batch(BATCH_SIZE, drop_remainder=True).prefetch(2)
 
         test_features = {x: tf.ragged.constant(
             test[x]).to_tensor(0) for x in self.feature_columns}
 
         tfds_test = tf.data.Dataset.from_tensor_slices(
-            (test_features)).batch(32, drop_remainder=False).prefetch(2).repeat(1)
+            (test_features)).batch(BATCH_SIZE, drop_remainder=False).prefetch(2).repeat(1)
 
         return tfds_train, tfds_dev, tfds_test
