@@ -34,28 +34,39 @@ class SequenceTagger(tf.keras.Model):
         return None
 
     def call(self, features, training=None):
-        net, _ = self.encoder(features, training=True)
+        net = self.encoder(features, training=False)  # TODO change!
 
-        logits = self.output_layer(net)
+        logits = self.output_layer(net[0])
+
+        input_shape_ = tf.shape(features['input_ids'])
+
+        sequence_length = tf.tile(
+            [input_shape_[1]],  # length
+            [input_shape_[0]])  # batch size
 
         if not training:
             if self.crf_decoding:
-                _, tags_prob = tfa.text.crf_decode(
+                tags_ids, tags_prob = tfa.text.crf_decode(
                     logits,
                     self.transition_params,
-                    [features['input_ids'].shape[1]] *
-                    features['input_ids'].shape[0],  # e.g. [512]*32
-                )
+                    sequence_length)  # e.g. [512]*32
             else:
                 tags_prob = tf.nn.softmax(logits)
+                tags_ids = tf.argmax(tags_prob, axis=2)
 
-            return tags_prob
+            return {'logits': logits, 'predictions': tf.cast(tags_ids, tf.int64)}
         else:
             return logits
 
     @tf.function
     def train_step(self, data):
         x, y = data
+
+        input_shape_ = tf.shape(x['input_ids'])
+
+        sequence_length = tf.tile(
+            [input_shape_[1]],  # length
+            [input_shape_[0]])  # batch size
 
         with tf.GradientTape() as tape:
             y_pred = self(x, training=True)  # Forward pass
@@ -64,13 +75,14 @@ class SequenceTagger(tf.keras.Model):
                 log_likelihood, _ = tfa.text.crf_log_likelihood(
                     y_pred,
                     y['output_1'],
-                    [x['input_ids'].shape[1]],  # length e.g. 512
+                    sequence_length,
                     transition_params=self.transition_params)
                 batch_size = tf.shape(log_likelihood)[0]
                 loss = tf.reduce_sum(-log_likelihood) / \
                     tf.cast(batch_size, log_likelihood.dtype)
             else:
-                loss = self.compiled_loss(y['output_1'], y_pred)
+                loss = tf.keras.losses.sparse_categorical_crossentropy(
+                    y['output_1'], y_pred, from_logits=True)
 
         # Compute gradients
         trainable_vars = self.trainable_variables
@@ -81,6 +93,35 @@ class SequenceTagger(tf.keras.Model):
 
         # Compute our own metrics
         return {'loss': loss}
+
+    @tf.function
+    def test_step(self, data):
+        # Unpack the data
+        x, y = data
+        # Compute predictions
+        y_pred = self(x, training=False)
+
+        # Updates the metrics tracking the loss
+        input_shape_ = tf.shape(x['input_ids'])
+
+        sequence_length = tf.tile(
+            [input_shape_[1]],  # length
+            [input_shape_[0]])  # batch size
+
+        if self.crf_decoding:
+            log_likelihood, _ = tfa.text.crf_log_likelihood(
+                y_pred['logits'],
+                y['output_1'],
+                sequence_length,
+                transition_params=self.transition_params)
+            batch_size = tf.shape(log_likelihood)[0]
+            val_loss = tf.reduce_sum(-log_likelihood) / \
+                tf.cast(batch_size, log_likelihood.dtype)
+        else:
+            val_loss = tf.keras.losses.sparse_categorical_crossentropy(
+                y['output_1'], y_pred['logits'], from_logits=True)
+
+        return {'custom_loss': val_loss}
 
 
 class SequenceClassifier(tf.keras.Model):
@@ -96,8 +137,8 @@ class SequenceClassifier(tf.keras.Model):
             units=num_labels, name='output_1')
         return None
 
-    def call(self, inputs):
-        _, net = self.encoder(inputs, training=False)
+    def call(self, inputs, training=None):
+        _, net = self.encoder(inputs, training=training)
         logits = self.output_layer(net)
         return logits
 
@@ -111,14 +152,14 @@ def define_callbacks(output_dir: str):
     checkpointing = tf.keras.callbacks.ModelCheckpoint(
         output_dir,
         save_best_only=True,
-        monitor='val_loss',
-        mode='auto')
+        monitor='val_custom_loss',
+        mode='min')
 
     early_stopping = tf.keras.callbacks.EarlyStopping(
-        monitor='val_loss',
-        patience=3,
+        monitor='val_custom_loss',
+        patience=5,
         verbose=0,
-        mode='auto')
+        mode='min')
 
     tensorboard = tf.keras.callbacks.TensorBoard(
         log_dir='./logs/tensorboard-logs/',

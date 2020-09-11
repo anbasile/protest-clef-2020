@@ -22,15 +22,22 @@ class ProtestaData:
         return None
 
     def load(self):
+        if self.task_name == 'task1':
+            return self.load_data_for_document_classifier()
 
-        if self.task_name == 'task3':
+        elif self.task_name == 'task2':
+            return self.load_data_for_sentence_classifier()
+
+        elif self.task_name == 'task3':
             return self.load_data_for_sequence_tagger()
+        else:
+            raise SystemExit
 
     def load_data_for_document_classifier(self):
-        return None
+        raise NotImplementedError
 
     def load_data_for_sentence_classifier(self):
-        return None
+        raise NotImplementedError
 
     def load_data_for_sequence_tagger(self, **kwargs):
 
@@ -40,12 +47,23 @@ class ProtestaData:
 
         BATCH_SIZE = 8
 
+        def encode_data_for_reconstruction(examples):
+            list_of_spans = defaultdict(list)
+
+            for sentence_id, tokens in enumerate(examples['token']):
+                for token in tokens:
+                    list_of_spans[sentence_id].append(
+                        (token, self.tokenizer.tokenize(token)))
+
+            return list_of_spans
+
         def encode_test(examples):
             """
                 TODO for Angelo: describe what is happening here!
             """
 
             input_ids = defaultdict(lambda: [101])
+
             for sentence_id, tokens in enumerate(examples['token']):
                 for token in tokens:
                     head, *tail = self.tokenizer.tokenize(token)
@@ -74,7 +92,7 @@ class ProtestaData:
             padded_tags = defaultdict(lambda: [LABEL_SENTENCE_PAD])
             for sentence_id, (tokens, tags) in enumerate(zip(examples['token'], examples['label'])):
                 assert len(tokens) == len(tags)
-                for token, tag in zip(tokens, tags):
+                for token, tag in zip(tokens[:10], tags[:10]):
                     head, *tail = self.tokenizer.tokenize(token)
                     input_ids[sentence_id].append(
                         self.tokenizer.convert_tokens_to_ids(head))
@@ -109,7 +127,9 @@ class ProtestaData:
 
         dev = dev.map(encode_train_and_dev, batched=True)
 
-        test = dev.map(encode_test, batched=True)
+        test = test.map(encode_test, batched=True)
+
+        list_of_spans = encode_data_for_reconstruction(test)
 
         train_features = {x: tf.ragged.constant(
             train[x]).to_tensor(0) for x in self.feature_columns}
@@ -133,6 +153,6 @@ class ProtestaData:
             test[x]).to_tensor(0) for x in self.feature_columns}
 
         tfds_test = tf.data.Dataset.from_tensor_slices(
-            (test_features)).batch(BATCH_SIZE, drop_remainder=False).prefetch(2).repeat(1)
+            (test_features)).batch(BATCH_SIZE, drop_remainder=False)
 
-        return tfds_train, tfds_dev, tfds_test
+        return tfds_train, tfds_dev, (tfds_test, test, list_of_spans)

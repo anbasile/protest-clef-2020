@@ -24,8 +24,8 @@ def fit(
         pretrained_model,
         dataset,
         crf_decoding)
-    trainer.run()
     typer.echo("Training model")
+    trainer.run()
 
 
 @app.command()
