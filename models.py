@@ -34,7 +34,7 @@ class SequenceTagger(tf.keras.Model):
         return None
 
     def call(self, features, training=None):
-        net = self.encoder(features, training=False)  # TODO change!
+        net = self.encoder(features, training=training)
 
         logits = self.output_layer(net[0])
 
@@ -81,8 +81,7 @@ class SequenceTagger(tf.keras.Model):
                 loss = tf.reduce_sum(-log_likelihood) / \
                     tf.cast(batch_size, log_likelihood.dtype)
             else:
-                loss = tf.keras.losses.sparse_categorical_crossentropy(
-                    y['output_1'], y_pred, from_logits=True)
+                loss = self.compiled_loss(y['output_1'], y_pred)
 
         # Compute gradients
         trainable_vars = self.trainable_variables
@@ -118,9 +117,7 @@ class SequenceTagger(tf.keras.Model):
             val_loss = tf.reduce_sum(-log_likelihood) / \
                 tf.cast(batch_size, log_likelihood.dtype)
         else:
-            val_loss = tf.keras.losses.sparse_categorical_crossentropy(
-                y['output_1'], y_pred['logits'], from_logits=True)
-
+            val_loss = self.compiled_loss(y['output_1'], y_pred)
         return {'custom_loss': val_loss}
 
 
@@ -142,12 +139,22 @@ class SequenceClassifier(tf.keras.Model):
         logits = self.output_layer(net)
         return logits
 
+class ResetLossCallback(tf.keras.callbacks.Callback):
+    """
+        We need to manually reset the metrics, since 
+        we are using a custom .fit() method.
+    """
+    def on_epoch_end(self, epoch, logs=None):
+        if self.model.crf_decoding:
+            for m in self.model.metrics:
+                m.reset_states()
+
 
 def define_callbacks(output_dir: str):
     """
         TODO
     """
-    Path(f'outputs/{output_dir}').mkdir(exist_ok=True, parents=True)
+    Path(f'{output_dir}').mkdir(exist_ok=True, parents=True)
 
     checkpointing = tf.keras.callbacks.ModelCheckpoint(
         output_dir,
@@ -159,6 +166,7 @@ def define_callbacks(output_dir: str):
         monitor='val_custom_loss',
         patience=5,
         verbose=0,
+        restore_best_weights=True,
         mode='min')
 
     tensorboard = tf.keras.callbacks.TensorBoard(
@@ -169,6 +177,8 @@ def define_callbacks(output_dir: str):
     callbacks = [
         checkpointing,
         early_stopping,
-        tensorboard]
+        tensorboard,
+        ResetLossCallback()
+        ]
 
     return callbacks

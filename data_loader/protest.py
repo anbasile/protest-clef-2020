@@ -64,7 +64,8 @@ class Protest(nlp.GeneratorBasedBuilder):
                 'I-place',
                 'I-target',
                 'I-trigger',
-                'O']))
+                'O',
+                ]))
         return nlp.DatasetInfo(
             features=nlp.Features(features),
         )
@@ -83,27 +84,20 @@ class Protest(nlp.GeneratorBasedBuilder):
         return [
             nlp.SplitGenerator(
                 name=nlp.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, f"train.{extension_[self.config.name]}"),
-                    # 'labelpath': os.path.join(data_dir, 'train_{}-labels.lst'.format(self.config.data_size)),
-                    "split": "train",
-                },
+                    "split": "train"},
             ),
             nlp.SplitGenerator(
                 name=nlp.Split.TEST,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(
-                    data_dir, f"test.{extension_[self.config.name]}"), "split": "test"},
+                   data_dir, f"task3_test.{extension_[self.config.name]}"), "split": "test"},
             ),
             nlp.SplitGenerator(
                 name=nlp.Split.VALIDATION,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, f"dev.{extension_[self.config.name]}"),
-                    # 'labelpath': os.path.join(data_dir, 'dev-labels.lst'),
-                    "split": "dev",
-                },
+                    "split": "dev"},
             ),
         ]
 
@@ -151,14 +145,11 @@ class Protest(nlp.GeneratorBasedBuilder):
         elif self.config.name == 'task3':
             if split == 'test':
                 with open(filepath, 'r', encoding='utf-8') as f:
-                    next(f)  # TODO fix skip first empty row
                     sentence_index = 0
                     tokens = []
                     for row in f:
                         token = row.strip()
-                        if token == 'SAMPLE_START':
-                            continue
-                        elif token == '':
+                        if token == '':
                             yield sentence_index, {'token': tokens, 'label': []}
                             sentence_index += 1
                             tokens = []
@@ -167,7 +158,7 @@ class Protest(nlp.GeneratorBasedBuilder):
             else:
                 with open(filepath, 'r', encoding='utf-8') as f:
                     data = csv.reader(f, delimiter='\t', quotechar=None)
-                    next(data)  # TODO fix skip first empty row
+                    next(data)  # NOTE we skip the first row, assuming it's empty
                     sentence_index = 0
                     tokens = []
                     tags = []

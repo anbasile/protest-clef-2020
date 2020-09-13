@@ -41,9 +41,9 @@ class ProtestaData:
 
     def load_data_for_sequence_tagger(self, **kwargs):
 
-        LABEL_TOKEN_PAD = 18
+        LABEL_TOKEN_PAD = 17
 
-        LABEL_SENTENCE_PAD = 19
+        LABEL_SENTENCE_PAD = 18
 
         BATCH_SIZE = 8
 
@@ -52,6 +52,10 @@ class ProtestaData:
 
             for sentence_id, tokens in enumerate(examples['token']):
                 for token in tokens:
+                    if token.startswith('http'):
+                        tokenized_token = ['URL']
+                    else:
+                        tokenized_token = self.tokenizer.tokenize(token)
                     list_of_spans[sentence_id].append(
                         (token, self.tokenizer.tokenize(token)))
 
@@ -66,6 +70,9 @@ class ProtestaData:
 
             for sentence_id, tokens in enumerate(examples['token']):
                 for token in tokens:
+                    if token.startswith('http'):
+                        print(token)
+                        token = 'URL'
                     head, *tail = self.tokenizer.tokenize(token)
                     input_ids[sentence_id].append(
                         self.tokenizer.convert_tokens_to_ids(head))
@@ -74,6 +81,10 @@ class ProtestaData:
                             self.tokenizer.convert_tokens_to_ids(split))
 
                 input_ids[sentence_id].append(102)
+
+                positions_to_pad = 512-len(input_ids[sentence_id])
+
+                input_ids[sentence_id].extend([0]*positions_to_pad)
 
                 assert len(input_ids[sentence_id]) <= 512
 
@@ -92,7 +103,7 @@ class ProtestaData:
             padded_tags = defaultdict(lambda: [LABEL_SENTENCE_PAD])
             for sentence_id, (tokens, tags) in enumerate(zip(examples['token'], examples['label'])):
                 assert len(tokens) == len(tags)
-                for token, tag in zip(tokens[:10], tags[:10]):
+                for token, tag in zip(tokens, tags):
                     head, *tail = self.tokenizer.tokenize(token)
                     input_ids[sentence_id].append(
                         self.tokenizer.convert_tokens_to_ids(head))
@@ -104,6 +115,14 @@ class ProtestaData:
 
                 input_ids[sentence_id].append(102)
                 padded_tags[sentence_id].append(LABEL_SENTENCE_PAD)
+
+                positions_to_pad = 512-len(input_ids[sentence_id])
+
+                input_ids[sentence_id].extend([0]*positions_to_pad)
+
+                padded_tags[sentence_id].extend([LABEL_SENTENCE_PAD]*positions_to_pad)
+
+
 
                 assert len(input_ids[sentence_id]) == len(
                     padded_tags[sentence_id])

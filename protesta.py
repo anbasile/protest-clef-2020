@@ -29,18 +29,30 @@ def fit(
 
 
 @app.command()
-def predict():
+def predict(
+    model_dir: Path,
+    input_file: Path):
     typer.echo("Running inference")
+    i = importlib.import_module('inference', 'Inferencer')
+    """
+        TODO
+    """
+    inference = i.Inferencer(model_dir, input_file)
+    inference.run()
+
+
 
 
 @app.command()
 def evaluate():
-    typer.echo("Running evaluation")
+    typer.echo("TODO Running evaluation")
+    raise NotImplementedError
 
 
 @app.command()
 def serve():
-    typer.echo("Running demo")
+    typer.echo("TODO Running demo")
+    raise NotImplementedError
 
 
 if __name__ == "__main__":
