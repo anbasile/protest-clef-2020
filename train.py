@@ -3,7 +3,7 @@ import sys
 from itertools import chain
 from pathlib import Path
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = "0"
+os.environ['CUDA_VISIBLE_DEVICES'] = "3"
 import tensorflow as tf
 
 from common import ModelType
@@ -86,24 +86,24 @@ class Trainer:
             validation_data=dev,
             callbacks=define_callbacks(self.output_dir))
 
-        self.model.save(self.output_dir)
+        self.model.save_weights(self.output_dir+'model.saved_model/', save_format='tf')
 
-        encoded_data, nld_df, original_spans = test
+        # encoded_data, nld_df, original_spans = test
 
-        test_predictions = self.model.predict(encoded_data)['predictions']
+        # test_predictions = self.model.predict(encoded_data)['predictions']
 
-        # write test predictions to file
-        with open(f'{self.output_dir}/task3_test.predictions.tsv', 'w+') as f:
-            for tokens, predictions, span in zip(nld_df, test_predictions, list(original_spans.values())):
-                tokenized_sentence = list(
-                    chain.from_iterable([x[1] for x in span]))
-                useful_tags = predictions[1:len(tokenized_sentence)+1]
-                cursor = 0
-                for original_token, splitted_tokens in span:
-                    output_label = self.index2label[useful_tags[cursor:cursor+len(splitted_tokens)][0]]
-                    f.write(f'{original_token}\t{output_label}\n')
-                    cursor += len(splitted_tokens)
-                f.write('\n')
-            f.write('\n')
+        # # write test predictions to file
+        # with open(f'{self.output_dir}/task3_test.predictions.tsv', 'w+') as f:
+        #     for tokens, predictions, span in zip(nld_df, test_predictions, list(original_spans.values())):
+        #         tokenized_sentence = list(
+        #             chain.from_iterable([x[1] for x in span]))
+        #         useful_tags = predictions[1:len(tokenized_sentence)+1]
+        #         cursor = 0
+        #         for original_token, splitted_tokens in span:
+        #             output_label = self.index2label[useful_tags[cursor:cursor+len(splitted_tokens)][0]]
+        #             f.write(f'{original_token}\t{output_label}\n')
+        #             cursor += len(splitted_tokens)
+        #         f.write('\n')
+        #     f.write('\n')
 
         return None

@@ -159,12 +159,13 @@ def define_callbacks(output_dir: str):
     checkpointing = tf.keras.callbacks.ModelCheckpoint(
         output_dir,
         save_best_only=True,
+        save_weights_only=True,
         monitor='val_custom_loss',
         mode='min')
 
     early_stopping = tf.keras.callbacks.EarlyStopping(
         monitor='val_custom_loss',
-        patience=5,
+        patience=6,
         verbose=0,
         restore_best_weights=True,
         mode='min')
