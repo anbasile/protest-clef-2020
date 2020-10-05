@@ -10,10 +10,8 @@ app = typer.Typer()
 @app.command()
 def fit(
         model_type: ModelType,
-        pretrained_model: str = typer.Argument(
-            "bert-base-cased", help="The pretrained transformer to use"),
-        dataset: Path = typer.Argument(...,
-                                       help="The path of the folder with the training data"),
+        pretrained_model: str = typer.Argument(..., help="The pretrained transformer to use"),
+        dataset: Path = typer.Argument(..., help="The path of the folder with the training data"),
         crf_decoding: bool = typer.Option(False, help="Add crf decoding to model")):
     t = importlib.import_module('train', 'Trainer')
     """
@@ -39,8 +37,6 @@ def predict(
     """
     inference = i.Inferencer(model_dir, input_file)
     inference.run()
-    print(f"Writing predictions to {input_file.with_suffix('.predictions')}")
-
 
 @app.command()
 def evaluate():
