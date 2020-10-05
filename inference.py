@@ -1,7 +1,5 @@
 import importlib
 import math
-import os
-import sys
 from collections import defaultdict
 from itertools import chain
 from pathlib import Path
@@ -15,7 +13,6 @@ from common import ModelType
 from data import ProtestaData
 from models import SequenceClassifier, SequenceTagger
 
-os.environ['CUDA_VISIBLE_DEVICES'] = "3"
 
 class Inferencer:
     def __init__(

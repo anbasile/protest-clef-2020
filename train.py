@@ -1,10 +1,11 @@
 import importlib
-import sys
+import os
 from itertools import chain
 from pathlib import Path
-import os
-os.environ['CUDA_VISIBLE_DEVICES'] = "3"
+
 import tensorflow as tf
+
+tf.random.set_seed(42)
 
 from common import ModelType
 from data import ProtestaData
