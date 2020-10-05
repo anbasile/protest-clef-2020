@@ -11,7 +11,7 @@ app = typer.Typer()
 def fit(
         model_type: ModelType,
         pretrained_model: str = typer.Argument(
-            "google/mobilebert-uncased", help="The pretrained transformer to use"),
+            "bert-base-cased", help="The pretrained transformer to use"),
         dataset: Path = typer.Argument(...,
                                        help="The path of the folder with the training data"),
         crf_decoding: bool = typer.Option(False, help="Add crf decoding to model")):
@@ -39,8 +39,7 @@ def predict(
     """
     inference = i.Inferencer(model_dir, input_file)
     inference.run()
-
-
+    print(f"Writing predictions to {input_file.with_suffix('.predictions')}")
 
 
 @app.command()

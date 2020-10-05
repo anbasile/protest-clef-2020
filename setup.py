@@ -12,7 +12,7 @@ setup(
         "tensorflow-addons",
         "tensorflow==2.3.0",
         "torch==1.6.0",
-        "transformers>=3.0,<3.1",
+        "transformers>=3.0",
         "typer>=0.3.1",
         ],
     entry_points={"console_scripts": ["protesta=protesta:app"]})

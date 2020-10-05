@@ -1,4 +1,5 @@
 import importlib
+import math
 import os
 import sys
 from collections import defaultdict
@@ -6,15 +7,15 @@ from itertools import chain
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import tensorflow as tf
+from transformers import BertTokenizerFast
 
 from common import ModelType
 from data import ProtestaData
-from models import define_callbacks
-from transformers import BertTokenizerFast
+from models import SequenceClassifier, SequenceTagger
 
-os.environ['CUDA_VISIBLE_DEVICES'] = "2"
-
+os.environ['CUDA_VISIBLE_DEVICES'] = "3"
 
 class Inferencer:
     def __init__(
@@ -24,16 +25,13 @@ class Inferencer:
         """
             TODO
         """
-        config_ = model_dir.name.split('_')
-        self.MAX_LENGTH = 512
-        self.model_type = config_[0]
-        self.pretrained_model = config_[1]
-        self.crf_decoding = config_[2]
-        self.input_file = input_file
-        self.output_file = f'{input_file.name}_from_{model_dir.name}.predictions.tsv'
 
-        self.model = tf.saved_model.load(model_dir.as_posix())
-        self.tokenizer = BertTokenizerFast.from_pretrained(self.pretrained_model)
+        self.model_type, self.pretrained_model, self.crf_decoding = model_dir.name.split('_')
+
+
+        self.input_file = input_file
+
+        self.output_file_name = input_file.with_suffix(f'.{self.model_type}-{self.pretrained_model}-{self.crf_decoding}')
 
         num_tags = 2 if self.model_type == 'classifier' else 19
 
@@ -59,41 +57,65 @@ class Inferencer:
                 17: 'O',
                 18: 'O'}
 
-        return None
+        self.tokenizer = BertTokenizerFast.from_pretrained(self.pretrained_model)
+
+        if self.model_type == 'tagger':
+            self.model = SequenceTagger(self.pretrained_model, num_tags, self.crf_decoding)
+        elif self.model_type == 'classifier':
+            self.model = SequenceClassifier(self.pretrained_model, num_tags)
+
+        self.model.load_weights(f'{model_dir.as_posix()}/model.saved_model/')
+
+        print(f'Running inference on {input_file} using {model_dir.name}')
+        self.load_tokenized_data()
+
+    def load_tokenized_data(self):
+        df = pd.read_table(self.input_file, quoting=3, names=['token'])
+
+        df['splits'] = df.token.apply(self.tokenizer.tokenize)
+
+        df['ids'] = df.splits.apply(self.tokenizer.convert_tokens_to_ids)
+
+        df['sentence_id'] = df.token.str.contains('SAMPLE_START').astype(int).cumsum()-1
+
+        df = df[~df.token.isin(['SAMPLE_START', '[SEP]'])]
+
+        sentence_grouped = df.groupby('sentence_id')
+
+        self.df = list(chain.from_iterable(np.array_split(g, math.ceil(g.ids.apply(len).sum()/510)) for _, g in sentence_grouped))
+
+        input_ids = [np.concatenate([
+            np.array([101]),
+            chunk.explode('ids').ids.values,
+            np.array([102])]) for chunk in self.df]
+
+        encoded_data = tf.data.Dataset.from_tensor_slices({
+            'input_ids' : tf.ragged.constant(input_ids).to_tensor(0),
+            'attention_mask' : tf.ragged.constant([[1]*len(x) for x in input_ids]).to_tensor(0),
+            'token_type_ids' : tf.ragged.constant([[0]*len(x) for x in input_ids]).to_tensor(0),
+        })
+
+        return encoded_data.batch(8)
 
     def run(self):
-        """
-            TODO
-        """
+
+        data = self.load_tokenized_data()
+
+        predictions = self.model.predict(data)['predictions']
+
+        output_lines = []
+        for chunk_id, chunk in enumerate(self.df):
+            tmp = chunk.explode('ids')
+            tmp['predictions'] = predictions[chunk_id][1:tmp.shape[0]+1]
+            for n, g in tmp.groupby(tmp.index):
+                output_lines.append(f'{g.token.iloc[0]}\t{self.index2label[g.predictions.iloc[0]]}')
+
         with open(self.input_file, 'r') as f:
-            data = defaultdict(list)
-            sentence_id = 0
-            for line in f:
-                token = line.strip()
-                if token == '':
-                    sentence_id +=1
-                else:
-                    data[sentence_id].append({token: self.tokenizer.tokenize(token)})
+            for idx, line in enumerate(f):
+                if line.strip() in ['SAMPLE_START', '[SEP]', '']:
+                    output_lines.insert(idx, line.strip())
 
-            with open(self.output_file, 'w+') as f:
-                for sentence_id, instance in data.items():
-                    print(f'Sentence: {sentence_id}')
-                    tmp = np.array(list(chain.from_iterable(list(chain.from_iterable((x.values() for x in instance))))))
-                    n_chunks = int(tmp.shape[0] // 483 )+1
-                    chunks = np.array_split(tmp, n_chunks)
-                    print(len(chunks))
-                    predicted_tags = []
-                    for chunk in chunks:
-                        encoded_tmp = self.tokenizer(chunk.tolist(), is_pretokenized = True, return_tensors='tf', max_length=self.MAX_LENGTH, padding='max_length')
-                        tmp_predictions = self.model(encoded_tmp)['predictions'].numpy()[0]
-                        tmp_predicted_tags= [self.index2label[i] for i in tmp_predictions[:len(chunk)]]
-                        predicted_tags.extend(tmp_predicted_tags)
-                    assert len(predicted_tags) == len(tmp)
-                    cursor = 0
-                    for words in instance:
-                        for token, splits in words.items():
-                            f.write(f'{token}\t{predicted_tags[cursor:cursor+len(splits)][0]}\n')
-                        cursor += len(splits)
-                    f.write('\n')
+        with open(self.output_file_name, 'w') as f:
+            for line in output_lines:
+                f.write(f'{line}\n')
 
-        return None
