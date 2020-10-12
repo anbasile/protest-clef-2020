@@ -1,3 +1,7 @@
+from transformers.optimization_tf import AdamWeightDecay
+from models import define_callbacks
+from data import ProtestaData
+from common import ModelType
 import importlib
 import os
 from itertools import chain
@@ -6,10 +10,6 @@ from pathlib import Path
 import tensorflow as tf
 
 tf.random.set_seed(42)
-
-from common import ModelType
-from data import ProtestaData
-from models import define_callbacks
 
 
 class Trainer:
@@ -63,10 +63,12 @@ class Trainer:
         if self.crf_decoding:
             loss = None
         else:
-            loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+            loss = tf.keras.losses.SparseCategoricalCrossentropy(
+                from_logits=True)
 
         self.model.compile(
-            optimizer=tf.keras.optimizers.Adam(lr=3e-5),
+            # optimizer=tf.keras.optimizers.Adam(lr=3e-5),
+            optimizer=AdamWeightDecay(lr=2e-5),
             metrics=['acc'],
             loss=loss,
         )
@@ -87,6 +89,7 @@ class Trainer:
             validation_data=dev,
             callbacks=define_callbacks(self.output_dir))
 
-        self.model.save_weights(self.output_dir+'model.saved_model/', save_format='tf')
+        self.model.save_weights(
+            self.output_dir+'model.saved_model/', save_format='tf')
 
         return None

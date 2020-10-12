@@ -178,6 +178,7 @@ class Protest(nlp.GeneratorBasedBuilder):
                             assert len(tokens) == len(tags)
                             yield sentence_index, {'token': tokens, 'label': tags}
                             tokens, tags = [], []  # reset for next sentence
+                            continue
                         if token in ['SAMPLE_START', '[SEP]']:
                             continue
                         else:
