@@ -1,6 +1,6 @@
 # protest-clef-2020
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://github.com/anbasile/protest-clef-2020/blob/master/protesta.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/anbasile/protest-clef-2020/blob/master/protesta.ipynb)
 
 ## Old stuff
 
