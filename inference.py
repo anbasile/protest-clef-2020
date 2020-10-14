@@ -109,8 +109,13 @@ class Inferencer:
 
         with open(self.input_file, 'r') as f:
             for idx, line in enumerate(f):
-                if line.strip() in ['SAMPLE_START', '[SEP]', '']:
+                if line.strip() in ['SAMPLE_START', '[SEP]']:
                     output_lines.insert(idx, f'{line.strip()}\tO')
+                elif line.strip() == '':
+                     output_lines.insert(idx, line.strip())
+                else:
+                    pass
+                    
 
         with open(self.output_file_name, 'w') as f:
             for line in output_lines:
