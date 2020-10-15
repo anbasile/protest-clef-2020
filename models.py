@@ -21,7 +21,9 @@ class SequenceTagger(tf.keras.Model):
         except OSError:
             self.encoder = TFBertModel.from_pretrained(
                 pretrained_model, from_pt=True)
-
+            
+        self.dropout = tf.keras.layers.Dropout(0.1)
+        
         self.num_tags = num_labels
 
         if self.crf_decoding:
@@ -35,8 +37,10 @@ class SequenceTagger(tf.keras.Model):
 
     def call(self, features, training=None):
         net = self.encoder(features, training=training)
+        
+        net = self.dropout(net[0], training=training)
 
-        logits = self.output_layer(net[0])
+        logits = self.output_layer(net)
 
         input_shape_ = tf.shape(features['input_ids'])
 
