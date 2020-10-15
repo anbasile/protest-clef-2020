@@ -139,11 +139,13 @@ class SequenceClassifier(tf.keras.Model):
         logits = self.output_layer(net)
         return logits
 
+
 class ResetLossCallback(tf.keras.callbacks.Callback):
     """
         We need to manually reset the metrics, since 
         we are using a custom .fit() method.
     """
+
     def on_epoch_end(self, epoch, logs=None):
         if self.model.crf_decoding:
             for m in self.model.metrics:
@@ -177,9 +179,9 @@ def define_callbacks(output_dir: str):
 
     callbacks = [
         checkpointing,
-        early_stopping,
+        # early_stopping,
         tensorboard,
         ResetLossCallback()
-        ]
+    ]
 
     return callbacks

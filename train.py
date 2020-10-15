@@ -1,4 +1,5 @@
-from transformers.optimization_tf import AdamWeightDecay
+import sys
+from transformers.optimization_tf import AdamWeightDecay, create_optimizer
 from models import define_callbacks
 from data import ProtestaData
 from common import ModelType
@@ -61,17 +62,10 @@ class Trainer:
             self.crf_decoding)
 
         if self.crf_decoding:
-            loss = None
+            self.loss = None
         else:
-            loss = tf.keras.losses.SparseCategoricalCrossentropy(
+            self.loss = tf.keras.losses.SparseCategoricalCrossentropy(
                 from_logits=True)
-
-        self.model.compile(
-            # optimizer=tf.keras.optimizers.Adam(lr=3e-5),
-            optimizer=AdamWeightDecay(lr=2e-5),
-            metrics=['acc'],
-            loss=loss,
-        )
 
         return None
 
@@ -80,12 +74,21 @@ class Trainer:
             TODO
         """
 
-        train, dev, test = ProtestaData(
+        train, dev, _ = ProtestaData(
             self.data_dir, self.pretrained_model).load()
+
+        optimizer, lr = create_optimizer(
+            init_lr=2e-5, num_train_steps=len(train), num_warmup_steps=5, weight_decay_rate=0.2)
+
+        self.model.compile(
+            optimizer=optimizer,
+            metrics=['acc'],
+            loss=self.loss,
+        )
 
         self.model.fit(
             x=train,
-            epochs=100,
+            epochs=30,
             validation_data=dev,
             callbacks=define_callbacks(self.output_dir))
 
