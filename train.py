@@ -9,7 +9,7 @@ from itertools import chain
 from pathlib import Path
 
 import tensorflow as tf
-from tf.keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam
 
 tf.random.set_seed(42)
 
