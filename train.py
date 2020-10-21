@@ -82,7 +82,7 @@ class Trainer:
             init_lr=3e-5, num_train_steps=len(train), num_warmup_steps=0, weight_decay_rate=0.0)
 
         self.model.compile(
-            optimizer=AdamWeightDecay(learning_rate=1e-3),
+            optimizer=Adam(learning_rate=5e-5, clipnorm=1.0),
             metrics=['acc'],
             loss=self.loss,
         )
