@@ -112,6 +112,7 @@ class ProtestaData:
                         #input_ids[sentence_id].append(
                         #    self.tokenizer.convert_tokens_to_ids(split))
                         #padded_tags[sentence_id].append(LABEL_TOKEN_PAD)
+                        pass
 
                 input_ids[sentence_id].append(102)
                 padded_tags[sentence_id].append(LABEL_SENTENCE_PAD)
