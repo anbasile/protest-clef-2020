@@ -88,7 +88,7 @@ class Trainer:
 
         self.model.fit(
             x=train,
-            epochs=30,
+            epochs=100,
             validation_data=dev,
             callbacks=define_callbacks(self.output_dir))
 
