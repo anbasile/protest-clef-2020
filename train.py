@@ -9,6 +9,7 @@ from itertools import chain
 from pathlib import Path
 
 import tensorflow as tf
+from tf.keras.optimizers import Adam
 
 tf.random.set_seed(42)
 
@@ -81,7 +82,7 @@ class Trainer:
             init_lr=3e-5, num_train_steps=len(train), num_warmup_steps=0, weight_decay_rate=0.0)
 
         self.model.compile(
-            optimizer=optimizer,
+            optimizer=Adam(learning_rate=5e-5),
             metrics=['acc'],
             loss=self.loss,
         )
