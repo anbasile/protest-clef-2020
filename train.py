@@ -1,6 +1,6 @@
 import sys
 from transformers.optimization_tf import AdamWeightDecay, create_optimizer
-from models import define_callbacks
+from models import define_callbacks, MaskedLoss
 from data import ProtestaData
 from common import ModelType
 import importlib
@@ -65,8 +65,8 @@ class Trainer:
         if self.crf_decoding:
             self.loss = None
         else:
-            self.loss = tf.keras.losses.SparseCategoricalCrossentropy(
-                from_logits=True)
+            # self.loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+            self.loss = MaskedLoss()
 
         return None
 
