@@ -78,7 +78,7 @@ class Trainer:
             self.data_dir, self.pretrained_model).load()
 
         optimizer, lr = create_optimizer(
-            init_lr=2e-5, num_train_steps=len(train), num_warmup_steps=0, weight_decay_rate=0.0)
+            init_lr=3e-5, num_train_steps=len(train), num_warmup_steps=0, weight_decay_rate=0.0)
 
         self.model.compile(
             optimizer=optimizer,
