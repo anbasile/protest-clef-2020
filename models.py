@@ -189,3 +189,14 @@ def define_callbacks(output_dir: str):
     ]
 
     return callbacks
+
+class MaskedLoss(tf.keras.losses.Loss):
+    def __init__(self, mask_value=-1, name='MaskedLoss'):
+        super().__init__(name=name)
+        self.mask_value = mask_value
+
+    def call(self, y_true, y_pred):
+
+        mask = tf.math.not_equal(y_true, self.mask_value)
+        mask = tf.cast(mask, tf.float32)
+        return tf.keras.losses.sparse_categorical_crossentropy(y_true * mask, y_pred * mask)
