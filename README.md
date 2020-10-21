@@ -6,7 +6,7 @@ This repo contains the code related to our participation to the [CLEF 2019 Lab P
 
 ## Papers
 
-### [ProTestA: Identifying and Extracting ProtestEvents in NewsNotebook for ProtestNews Lab at CLEF 2019](http://ceur-ws.org/Vol-2380/paper_101.pdf)
+### [ProTestA: Identifying and Extracting ProtestEvents in News - Notebook for ProtestNews Lab at CLEF 2019](http://ceur-ws.org/Vol-2380/paper_101.pdf)
 
 
 > This  notebook  describes  our  participation  to  the  Protest-New Lab, identifying protest events in news articles in English. Systemsare challenged to perform unsupervised domain adaptation against threesub-tasks: document classification, sentence classification, and event ex-traction.  We  describe  the  final  submitted  systems  for  all  sub-tasks,  aswell as a series of negative results. Results indicate pretty robust perfor-mances in all tasks (average F1 of 0.705 for the document classificationsub-task, average F1 of 0.592 for the sentence classification sub-task; av-erage F1 0.528 for the event extraction sub-task), ranking in the top 4systems, although drops in the out-of-domain test sets are not minimal.
