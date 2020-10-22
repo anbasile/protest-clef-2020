@@ -183,7 +183,7 @@ def define_callbacks(output_dir: str):
 
     callbacks = [
         checkpointing,
-        # early_stopping,
+        early_stopping,
         tensorboard,
         ResetLossCallback()
     ]
