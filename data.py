@@ -41,7 +41,7 @@ class ProtestaData:
 
     def load_data_for_sequence_tagger(self, **kwargs):
 
-        LABEL_TOKEN_PAD = -1
+        LABEL_TOKEN_PAD = 17
 
         LABEL_SENTENCE_PAD = 18
 
@@ -112,7 +112,6 @@ class ProtestaData:
                         input_ids[sentence_id].append(
                             self.tokenizer.convert_tokens_to_ids(split))
                         padded_tags[sentence_id].append(LABEL_TOKEN_PAD)
-                        
 
                 input_ids[sentence_id].append(102)
                 padded_tags[sentence_id].append(LABEL_SENTENCE_PAD)
@@ -121,9 +120,8 @@ class ProtestaData:
 
                 input_ids[sentence_id].extend([0]*positions_to_pad)
 
-                padded_tags[sentence_id].extend([LABEL_SENTENCE_PAD]*positions_to_pad)
-
-
+                padded_tags[sentence_id].extend(
+                    [LABEL_SENTENCE_PAD]*positions_to_pad)
 
                 assert len(input_ids[sentence_id]) == len(
                     padded_tags[sentence_id])

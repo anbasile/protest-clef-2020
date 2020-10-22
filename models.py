@@ -21,9 +21,9 @@ class SequenceTagger(tf.keras.Model):
         except OSError:
             self.encoder = TFBertModel.from_pretrained(
                 pretrained_model, from_pt=True)
-            
+
         self.dropout = tf.keras.layers.Dropout(0.1)
-        
+
         self.num_tags = num_labels
 
         if self.crf_decoding:
@@ -36,8 +36,8 @@ class SequenceTagger(tf.keras.Model):
         return None
 
     def call(self, features, training=None):
-        net = self.encoder(features, training=training)
-        
+        net = self.encoder(features, training=False)
+
         net = self.dropout(net[0], training=training)
 
         logits = self.output_layer(net)
@@ -190,13 +190,16 @@ def define_callbacks(output_dir: str):
 
     return callbacks
 
+
 class MaskedLoss(tf.keras.losses.Loss):
-    def __init__(self, mask_value=-1, name='MaskedLoss'):
+    def __init__(self, mask_value=17, name='MaskedLoss'):
         super().__init__(name=name)
         self.mask_value = mask_value
 
     def call(self, y_true, y_pred):
 
-        mask = tf.math.not_equal(y_true, self.mask_value)
-        mask = tf.cast(mask, tf.float32)
-        return tf.keras.losses.sparse_categorical_crossentropy(y_true * mask, y_pred * mask, from_logits=True)
+        boolean_mask = tf.math.not_equal(y_true, self.mask_value)
+
+        mask = tf.cast(boolean_mask, tf.float32)
+
+        return tf.keras.losses.sparse_categorical_crossentropy(y_true, y_pred, from_logits=True)*mask
