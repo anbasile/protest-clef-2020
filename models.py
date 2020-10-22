@@ -36,7 +36,7 @@ class SequenceTagger(tf.keras.Model):
         return None
 
     def call(self, features, training=None):
-        net = self.encoder(features, training=False)
+        net = self.encoder(features, training=training)
 
         net = self.dropout(net[0], training=training)
 
