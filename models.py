@@ -202,4 +202,7 @@ class MaskedLoss(tf.keras.losses.Loss):
 
         mask = tf.cast(boolean_mask, tf.float32)
 
-        return tf.keras.losses.sparse_categorical_crossentropy(y_true, y_pred, from_logits=True)*mask
+        loss = tf.keras.losses.sparse_categorical_crossentropy(
+            y_true, y_pred, from_logits=True)*mask
+
+        return loss
