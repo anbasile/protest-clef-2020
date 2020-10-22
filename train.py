@@ -78,10 +78,11 @@ class Trainer:
             self.data_dir, self.pretrained_model).load()
 
         optimizer, lr = create_optimizer(
-            init_lr=3e-5, num_train_steps=len(train), num_warmup_steps=0, weight_decay_rate=0.0)
+            init_lr=5e-5, num_train_steps=len(train), num_warmup_steps=1, weight_decay_rate=0.01)
 
         self.model.compile(
-            optimizer=Adam(learning_rate=5e-5, clipnorm=1.0),
+            # optimizer=Adam(learning_rate=5e-5, clipnorm=1.0),
+            optimizer=optimizer,
             metrics=['acc'],
             loss=self.loss,
         )
