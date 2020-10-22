@@ -65,7 +65,6 @@ class Trainer:
         if self.crf_decoding:
             self.loss = None
         else:
-            # self.loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
             self.loss = MaskedLoss()
 
         return None
