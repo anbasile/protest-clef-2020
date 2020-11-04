@@ -10,10 +10,11 @@ class ProtestConfig(nlp.BuilderConfig):
         TODO
     """
 
-    def __init__(self, features, **kwargs):
+    def __init__(self, features=None, mode: str = None, **kwargs):
         super(ProtestConfig, self).__init__(
             version=nlp.Version("0.1.0"), **kwargs)
         self.features = features
+        self.mode = mode
 
 
 class Protest(nlp.GeneratorBasedBuilder):
@@ -27,9 +28,17 @@ class Protest(nlp.GeneratorBasedBuilder):
             features=["sentence", "label"],
         ),
         ProtestConfig(
-            name="task3",
+            name="task3_document",
             features=["token", "label"],
-        )]
+            mode='document'
+        ),
+        ProtestConfig(
+            name="task3_sentence",
+            features=["token", "label"],
+            mode='sentence'
+        ),
+
+    ]
 
     def _info(self):
         features = {feature: nlp.Value("string")
@@ -45,7 +54,7 @@ class Protest(nlp.GeneratorBasedBuilder):
             features["last"] = nlp.Value("bool")
             features["sent_num"] = nlp.Value("int64")
             features["sentence"] = nlp.Value("string")
-        elif self.config.name == 'task3':
+        elif self.config.name in ['task3_document', 'task3_sentence']:
             features['token'] = nlp.Sequence(nlp.Value("string"))
             features['label'] = nlp.Sequence(nlp.ClassLabel(names=[
                 'B-etime',
@@ -65,6 +74,9 @@ class Protest(nlp.GeneratorBasedBuilder):
                 'I-target',
                 'I-trigger',
                 'O']))
+        else:
+            raise SystemExit('Invalid task name')
+
         return nlp.DatasetInfo(
             features=nlp.Features(features),
         )
@@ -75,33 +87,24 @@ class Protest(nlp.GeneratorBasedBuilder):
             If dict, then keys should be from the `nlp.Split` enum.
         """
         data_dir = self.config.data_dir
-        extension_ = {
-            'task1': 'jsonl',
-            'task2': 'jsonl',
-            'task3': 'tsv',
-        }
         return [
             nlp.SplitGenerator(
                 name=nlp.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, f"train.{extension_[self.config.name]}"),
-                    # 'labelpath': os.path.join(data_dir, 'train_{}-labels.lst'.format(self.config.data_size)),
+                    "filepath": os.path.join(data_dir, "train.data"),
                     "split": "train",
                 },
             ),
             nlp.SplitGenerator(
                 name=nlp.Split.TEST,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(
-                    data_dir, f"test.{extension_[self.config.name]}"), "split": "test"},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "test.data"),
+                    "split": "test"},
             ),
             nlp.SplitGenerator(
                 name=nlp.Split.VALIDATION,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, f"dev.{extension_[self.config.name]}"),
-                    # 'labelpath': os.path.join(data_dir, 'dev-labels.lst'),
+                    "filepath": os.path.join(data_dir, "dev.data"),
                     "split": "dev",
                 },
             ),
@@ -148,7 +151,7 @@ class Protest(nlp.GeneratorBasedBuilder):
                             "sent_num": data['sent_num'],
                             "sentence": data['sentence']
                         }
-        elif self.config.name == 'task3':
+        elif self.config.name in ['task3_document', 'task3_sentence']:
             if split == 'test':
                 with open(filepath, 'r', encoding='utf-8') as f:
                     sentence_index = 0
@@ -179,8 +182,23 @@ class Protest(nlp.GeneratorBasedBuilder):
                             yield sentence_index, {'token': tokens, 'label': tags}
                             tokens, tags = [], []  # reset for next sentence
                             continue
-                        if token in ['SAMPLE_START', '[SEP]']:
-                            continue
-                        else:
-                            tokens.append(token)
-                            tags.append(tag)
+                        if self.config.mode == 'document':
+                            if token in ['SAMPLE_START', '[SEP]']:
+                                continue
+                            else:
+                                tokens.append(token)
+                                tags.append(tag)
+                        elif self.config.mode == 'sentence':
+                            if token in ['SAMPLE_START']:
+                                continue
+                            elif token in ['[SEP]']:
+                                sentence_index += 1
+                                assert len(tokens) == len(tags)
+                                yield sentence_index, {'token': tokens, 'label': tags}
+                                tokens, tags = [], []  # reset for next sentence
+                                continue
+                            else:
+                                tokens.append(token)
+                                tags.append(tag)
+        else:
+            raise SystemExit('Unkown task.')

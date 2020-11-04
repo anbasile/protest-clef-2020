@@ -8,7 +8,7 @@ import nlp as nld
 
 
 class ProtestaData:
-    def __init__(self, data_dir, pretrained_model):
+    def __init__(self, data_dir, pretrained_model, encoding_mode):
 
         self.task_name = data_dir.split('/')[-1]  # e.g. data/task2 -> 'task2'
 
@@ -18,6 +18,7 @@ class ProtestaData:
 
         self. feature_columns = ['input_ids',
                                  'attention_mask', 'token_type_ids']
+        self.encoding_mode = encoding_mode
 
         return None
 
@@ -137,7 +138,7 @@ class ProtestaData:
 
         train, dev, test = nld.load_dataset(
             f'{self.data_dir}/protest.py',
-            'task3',
+            f'task3_{self.encoding_mode}',
             data_dir=self.data_dir,
             split=['train', 'validation', 'test'])
 
