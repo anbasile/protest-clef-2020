@@ -29,8 +29,9 @@ class Trainer:
         self.pretrained_model = pretrained_model
         self.crf_decoding = crf_decoding
         self.data_dir = dataset.as_posix()
-        self.output_dir = f'outputs/{model_type}_{pretrained_model}_{crf_decoding}/'
         self.encoding_mode = encoding
+        self.output_dir = f'outputs/{model_type}_{pretrained_model}_{crf_decoding}_{encoding}/'
+
 
         module = importlib.import_module('models', self.model_type.name)
         model = getattr(module, self.model_type.name)
