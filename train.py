@@ -2,7 +2,7 @@ import sys
 from transformers.optimization_tf import AdamWeightDecay, create_optimizer
 from models import define_callbacks, MaskedLoss
 from data import ProtestaData
-from common import ModelType
+from common import ModelType, EncodingMode
 import importlib
 import os
 from itertools import chain
@@ -20,7 +20,8 @@ class Trainer:
             model_type: ModelType,
             pretrained_model: str,
             dataset: Path,
-            crf_decoding: bool):
+            crf_decoding: bool,
+            encoding: EncodingMode):
         """
             TODO
         """
@@ -29,6 +30,7 @@ class Trainer:
         self.crf_decoding = crf_decoding
         self.data_dir = dataset.as_posix()
         self.output_dir = f'outputs/{model_type}_{pretrained_model}_{crf_decoding}/'
+        self.encoding_mode = encoding
 
         module = importlib.import_module('models', self.model_type.name)
         model = getattr(module, self.model_type.name)
@@ -75,14 +77,14 @@ class Trainer:
         """
 
         train, dev, _ = ProtestaData(
-            self.data_dir, self.pretrained_model).load()
+            self.data_dir, self.pretrained_model, self.encoding_mode).load()
 
         optimizer, lr = create_optimizer(
             init_lr=1e-3, num_train_steps=len(train), num_warmup_steps=1, weight_decay_rate=0.01)
 
         self.model.compile(
             optimizer=Adam(learning_rate=2e-5, clipnorm=1.0),
-            #optimizer=optimizer,
+            # optimizer=optimizer,
             metrics=['acc'],
             loss=self.loss,
         )

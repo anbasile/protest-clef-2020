@@ -2,7 +2,7 @@ import importlib
 from pathlib import Path
 
 import typer
-from common import ModelType
+from common import ModelType, EncodingMode
 
 app = typer.Typer()
 
@@ -10,9 +10,14 @@ app = typer.Typer()
 @app.command()
 def fit(
         model_type: ModelType,
-        pretrained_model: str = typer.Argument(..., help="The pretrained transformer to use"),
-        dataset: Path = typer.Argument(..., help="The path of the folder with the training data"),
-        crf_decoding: bool = typer.Option(False, help="Add crf decoding to model")):
+        pretrained_model: str = typer.Argument(...,
+                                               help="The pretrained transformer to use"),
+        dataset: Path = typer.Argument(...,
+                                       help="The path of the folder with the training data"),
+        crf_decoding: bool = typer.Option(
+            False, help="Add crf decoding to model"),
+        encoding: EncodingMode = typer.Argument(
+            ..., help="Encode a document as a whole or sentence by sentence")):
     t = importlib.import_module('train', 'Trainer')
     """
         TODO
@@ -21,15 +26,16 @@ def fit(
         model_type,
         pretrained_model,
         dataset,
-        crf_decoding)
+        crf_decoding,
+        encoding)
     typer.echo("Training model")
     trainer.run()
 
 
 @app.command()
 def predict(
-    model_dir: Path,
-    input_file: Path):
+        model_dir: Path,
+        input_file: Path):
     typer.echo("Running inference")
     i = importlib.import_module('inference', 'Inferencer')
     """
@@ -37,6 +43,7 @@ def predict(
     """
     inference = i.Inferencer(model_dir, input_file)
     inference.run()
+
 
 @app.command()
 def evaluate():
