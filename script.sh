@@ -1,38 +1,22 @@
-# protesta fit tagger bert-base-cased protesta-data/task3
-# do
-# protesta fit tagger bert-base-cased protesta-data/task3 --crf-decoding
-# do
-# protesta fit tagger protest-model protesta-data/task3
-# protesta fit tagger protest-model protesta-data/task3 --crf-decoding
-# 
-# protesta predict outputs/tagger_protest-model_False Task3_train_dev_test/china_test.data
-# protesta predict outputs/tagger_protest-model_True Task3_train_dev_test/china_test.data
-# protesta predict outputs/tagger_bert-base-cased_False Task3_train_dev_test/china_test.data
-# protesta predict outputs/tagger_bert-base-cased_True Task3_train_dev_test/china_test.data
-# 
-# protesta predict outputs/tagger_protest-model_False protesta-data/task3/test.tsv
-# protesta predict outputs/tagger_protest-model_True protesta-data/task3/test.tsv
-# protesta predict outputs/tagger_bert-base-cased_False protesta-data/task3/test.tsv
-# protesta predict outputs/tagger_bert-base-cased_True protesta-data/task3/test.tsv
-# 
-# tar -cvf predictions.tar.gz protesta-data/task3/test.tagger* Task3_train_dev_test/china_test.tagger*
-# !protesta fit tagger bert-base-uncased /content/drive/My\ Drive/protesta-data/task3/ document
-# !protesta predict outputs/tagger_bert-base-uncased_True /content/drive/My\ Drive/protesta-data/task3/test.tsv
-# !protesta predict outputs/tagger_bert-base-uncased_True /content/drive/My\ Drive/protesta-data/task3/china_test.data
-for model in bert-base-uncased protest-bert
+for model in bert-base-uncased protest-model
 do
     for decoding in --no-crf-decoding --crf-decoding
     do 
         for mode in document sentence
+            protesta fit tagger $model /content/drive/My\ Drive/protesta-data/task3/ $decoding $mode
         do
-        protesta fit tagger $model /content/drive/My\ Drive/protesta-data/task3/ $decoding $mode
         if [ $decoding = "--crf-decoding" ]; then
-            protesta predict outputs/${model}_True /content/drive/My\ Drive/protesta-data/task3/test.tsv
-            protesta predict outputs/${model}_True /content/drive/My\ Drive/protesta-data/task3/china_test.data
+            decoding_boolean="True"
         else
-            protesta predict outputs/${model}_False /content/drive/My\ Drive/protesta-data/task3/test.tsv
-            protesta predict outputs/${model}_False /content/drive/My\ Drive/protesta-data/task3/china_test.data
+            decoding_boolean="False"
         fi
+        protesta predict outputs/${model}_${decoding_boolean} /content/drive/My\ Drive/protesta-data/task3/test.tsv
+        protesta predict outputs/${model}_${decoding_boolean} /content/drive/My\ Drive/protesta-data/task3/china_test.data
+        mv /content/drive/My\ Drive/protesta-data/task3/test.tagger-${model}-${decoding_boolean} ./task3_test.predict
+        mv /content/drive/My\ Drive/protesta-data/task3/china_test.tagger-${model}-${decoding_boolean} ./china_test.predict
+        zip /content/drive/My\ Drive/protest-predictions-and-models/${model}-${decoding_boolean}.zip ./task3_test.predict ./china_test.predict
+        tar -cvf /content/drive/My\ Drive/protest-predictions-and-models/tagger_${model}_${decoding_boolean}.tar.gz outputs/tagger_${model}_${decoding_boolean}
+        rm -rf outputs/ task3_test.predict ./china_test.predict
     done
     done
 done
