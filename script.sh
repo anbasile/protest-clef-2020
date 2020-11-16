@@ -3,8 +3,8 @@ do
     for decoding in --no-crf-decoding --crf-decoding
     do 
         for mode in document sentence
-            protesta fit tagger $model /content/drive/My\ Drive/protesta-data/task3/ $decoding $mode
         do
+        protesta fit tagger $model /content/drive/My\ Drive/protesta-data/task3/ $decoding $mode
         if [ $decoding = "--crf-decoding" ]; then
             decoding_boolean="True"
         else
