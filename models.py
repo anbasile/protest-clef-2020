@@ -171,7 +171,7 @@ def define_callbacks(output_dir: str):
 
     early_stopping = tf.keras.callbacks.EarlyStopping(
         monitor='val_custom_loss',
-        patience=10,
+        patience=5,
         verbose=0,
         restore_best_weights=True,
         mode='min')
