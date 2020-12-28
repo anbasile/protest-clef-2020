@@ -23,13 +23,13 @@ class Inferencer:
             TODO
         """
 
-        self.model_type, self.pretrained_model, self.crf_decoding, self.encoding_mode = model_dir.name.split(
+        self.model_type, self.pretrained_model, self.crf_decoding, self.encoding_mode, self.data_size = model_dir.name.split(
             '_')
 
         self.input_file = input_file
 
         self.output_file_name = input_file.with_suffix(
-            f'.{self.model_type}_{self.pretrained_model}_{self.crf_decoding}_{self.encoding_mode}')
+            f'.{self.model_type}_{self.pretrained_model}_{self.crf_decoding}_{self.encoding_mode}_{self.data_size}')
 
         num_tags = 2 if self.model_type == 'classifier' else 19
 

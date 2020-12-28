@@ -63,7 +63,7 @@ class ProtestaData:
                     else:
                         tokenized_token = self.tokenizer.tokenize(token)
                     list_of_spans[sentence_id].append(
-                        (token, self.tokenizer.tokenize(tokenized_token)))
+                        (token, self.tokenizer.tokenize(token)))
 
             return list_of_spans
 
