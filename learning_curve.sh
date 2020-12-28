@@ -6,7 +6,7 @@ do
         do
             for datasize in 0.1 0.3 0.5 0.7 0.9
             do
-            protesta fit tagger $decoding $mode $datasize $model /content/drive/My\ Drive/protesta-data/task3/
+            protesta fit $model /content/drive/My\ Drive/protesta-data/task3/ --model-type=tagger $decoding --encoding=$mode --data-size=$datasize
             if [ $decoding = "--crf-decoding" ]; then
                 decoding_boolean="True"
             else
