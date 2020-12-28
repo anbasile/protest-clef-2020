@@ -21,4 +21,5 @@ do
             rm -rf outputs/ task3_test.predict ./china_test.predict
     done
     done
+    done
 done
