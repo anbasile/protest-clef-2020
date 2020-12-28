@@ -8,7 +8,7 @@ import nlp as nld
 
 
 class ProtestaData:
-    def __init__(self, data_dir, pretrained_model, encoding_mode):
+    def __init__(self, data_dir, pretrained_model, encoding_mode, data_size):
 
         self.task_name = data_dir.split('/')[-1]  # e.g. data/task2 -> 'task2'
 
@@ -16,9 +16,14 @@ class ProtestaData:
 
         self.tokenizer = BertTokenizerFast.from_pretrained(pretrained_model)
 
-        self. feature_columns = ['input_ids',
-                                 'attention_mask', 'token_type_ids']
+        self. feature_columns = [
+            'input_ids',
+            'attention_mask',
+            'token_type_ids',
+        ]
         self.encoding_mode = encoding_mode
+
+        self.data_size = int(data_size*100)
 
         return None
 
@@ -58,7 +63,7 @@ class ProtestaData:
                     else:
                         tokenized_token = self.tokenizer.tokenize(token)
                     list_of_spans[sentence_id].append(
-                        (token, self.tokenizer.tokenize(token)))
+                        (token, self.tokenizer.tokenize(tokenized_token)))
 
             return list_of_spans
 
@@ -140,7 +145,7 @@ class ProtestaData:
             f'{self.data_dir}/protest.py',
             f'task3_{self.encoding_mode}',
             data_dir=self.data_dir,
-            split=['train', 'validation', 'test'])
+            split=[f'train[:{self.data_size}%]', 'validation', 'test'])
 
         train = train.map(encode_train_and_dev, batched=True)
 
