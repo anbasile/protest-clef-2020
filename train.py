@@ -1,15 +1,16 @@
-import sys
-from transformers.optimization_tf import AdamWeightDecay, create_optimizer
-from models import define_callbacks, MaskedLoss
-from data import ProtestaData
-from common import ModelType, EncodingMode
 import importlib
 import os
+import sys
 from itertools import chain
 from pathlib import Path
 
 import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
+from transformers.optimization_tf import AdamWeightDecay, create_optimizer
+
+from common import EncodingMode, ModelType
+from data import ProtestaData
+from models import MaskedLoss, define_callbacks
 
 tf.random.set_seed(42)
 
@@ -21,7 +22,8 @@ class Trainer:
             pretrained_model: str,
             dataset: Path,
             crf_decoding: bool,
-            encoding: EncodingMode):
+            encoding: EncodingMode,
+            data_size: float):
         """
             TODO
         """
@@ -30,8 +32,8 @@ class Trainer:
         self.crf_decoding = crf_decoding
         self.data_dir = dataset.as_posix()
         self.encoding_mode = encoding
-        self.output_dir = f'outputs/{model_type}_{pretrained_model}_{crf_decoding}_{encoding}/'
-
+        self.output_dir = f'outputs/{model_type}_{pretrained_model}_{crf_decoding}_{encoding}_{data_size}/'
+        self.data_size = data_size
 
         module = importlib.import_module('models', self.model_type.name)
         model = getattr(module, self.model_type.name)
@@ -78,14 +80,10 @@ class Trainer:
         """
 
         train, dev, _ = ProtestaData(
-            self.data_dir, self.pretrained_model, self.encoding_mode).load()
-
-        optimizer, lr = create_optimizer(
-            init_lr=1e-3, num_train_steps=len(train), num_warmup_steps=1, weight_decay_rate=0.01)
+            self.data_dir, self.pretrained_model, self.encoding_mode, self.data_size).load()
 
         self.model.compile(
             optimizer=Adam(learning_rate=2e-5, clipnorm=1.0),
-            # optimizer=optimizer,
             metrics=['acc'],
             loss=self.loss,
         )
