@@ -10,7 +10,7 @@ setup(
         "nlp>=0.4",
         "numpy<1.19",
         "tensorflow-addons",
-        "tensorflow==2.3.1",
+        "tensorflow==2.4.0",
         "transformers==3.5",
         "typer>=0.3.1",
     ],
