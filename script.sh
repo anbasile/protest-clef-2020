@@ -12,7 +12,7 @@ do
             else
                 decoding_boolean="False"
             fi
-            protesta predict outputs/tagger_${model}_${decoding_boolean}_${mode}_${datasize}_${datasize} /content/drive/My\ Drive/protesta-data/task3/test.data
+            protesta predict outputs/tagger_${model}_${decoding_boolean}_${mode}_${datasize} /content/drive/My\ Drive/protesta-data/task3/test.data
             protesta predict outputs/tagger_${model}_${decoding_boolean}_${mode}_${datasize} /content/drive/My\ Drive/protesta-data/task3/china_test.data
             mv /content/drive/My\ Drive/protesta-data/task3/test.tagger_${model}_${decoding_boolean}_${mode}_${datasize} ./task3_test.predict
             mv /content/drive/My\ Drive/protesta-data/task3/china_test.tagger_${model}_${decoding_boolean}_${mode}_${datasize} ./china_test.predict
