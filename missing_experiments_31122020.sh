@@ -1,8 +1,8 @@
 for model in protest-model
 do
-    for decoding in --no-crf-decoding --crf-decoding
+    for decoding in --crf-decoding
     do
-        for mode in document sentence
+        for mode in sentence
         do
             for datasize in 1.0
             do
