@@ -2,7 +2,7 @@ for model in bert-base-uncased protest-model
 do
     for decoding in --crf-decoding
     do 
-        for mode in document
+        for mode in sentence
         do
             for datasize in 0.1 0.3 0.5 0.7 0.9
             do
