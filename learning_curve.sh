@@ -1,6 +1,6 @@
 for model in bert-base-uncased protest-model
 do
-    for decoding in --crf-decoding
+    for decoding in --no-crf-decoding
     do 
         for mode in sentence
         do
