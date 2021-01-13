@@ -70,7 +70,7 @@ class Inferencer:
         self.load_tokenized_data()
 
     def load_tokenized_data(self):
-        df = pd.read_table(self.input_file, quoting=3, names=['token'])
+        df = pd.read_table(self.input_file, quoting=3, names=['token'], usecols=[0])
         
 
         df['splits'] = df.token.apply(self.tokenizer.tokenize)
