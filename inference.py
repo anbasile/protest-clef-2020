@@ -71,6 +71,8 @@ class Inferencer:
 
     def load_tokenized_data(self):
         df = pd.read_table(self.input_file, quoting=3, names=['token'])
+        
+        df['token'] = df.token.apply(lambda x: 'URL' if x.startswith('http') else x)
 
         df['splits'] = df.token.apply(self.tokenizer.tokenize)
 
