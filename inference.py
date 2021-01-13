@@ -72,7 +72,6 @@ class Inferencer:
     def load_tokenized_data(self):
         df = pd.read_table(self.input_file, quoting=3, names=['token'])
         
-        df['token'] = df.token.apply(lambda x: 'URL' if x.startswith('http') else x)
 
         df['splits'] = df.token.apply(self.tokenizer.tokenize)
 
@@ -86,7 +85,7 @@ class Inferencer:
         sentence_grouped = df.groupby('sentence_id')
 
         self.df = list(chain.from_iterable(np.array_split(g, math.ceil(
-            g.ids.apply(len).sum()/510)) for _, g in sentence_grouped))
+            g.ids.apply(len).sum()/509)) for _, g in sentence_grouped))
 
         input_ids = [np.concatenate([
             np.array([101]),
