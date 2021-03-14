@@ -8,7 +8,6 @@ setup(
     author_email='me@angelobasile.it',
     install_requires=[
         "nlp>=0.4",
-        "numpy<1.19",
         "tensorflow-addons",
         "tensorflow==2.4.0",
         "transformers==4.3.3",
