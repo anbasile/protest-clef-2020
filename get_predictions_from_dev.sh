@@ -1,4 +1,4 @@
-for model in bert-base-uncased protest-model
+for model in bert-base-uncased 1-epoch 20-epoch 40-epoch 60-epoch 80-epoch 100-epoch
 do
     for decoding in --no-crf-decoding --crf-decoding
     do 
