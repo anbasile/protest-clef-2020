@@ -10,11 +10,11 @@ do
             else
                 decoding_boolean="False"
             fi
-            tar xvf /content/drive/My\ Drive/protest-predictions-and-models/tagger_${model}_${decoding_boolean}_${mode}_1.0.tar.gz -C outputs/
+            tar xvf /content/drive/MyDrive/protest-predictions-and-models/tagger_${model}_${decoding_boolean}_${mode}_1.0.tar.gz -C outputs/
             mv outputs/outputs/tagger_${model}_${decoding_boolean}_${mode}_1.0 outputs/tagger_${model}_${decoding_boolean}_${mode}_1.0
             protesta predict outputs/tagger_${model}_${decoding_boolean}_${mode}_1.0 /content/drive/My\ Drive/protesta-data/task3/dev.data
-            mv /content/drive/My\ Drive/protesta-data/task3/dev.tagger_${model}_${decoding_boolean}_${mode}_1.0 ./dev.predict
-            zip /content/drive/My\ Drive/protest-predictions-and-models/dev_${model}_${decoding_boolean}_${mode}.zip ./dev.predict
+            mv /content/drive/MyDrive/protesta-data/task3/dev.tagger_${model}_${decoding_boolean}_${mode}_1.0 ./dev.predict
+            zip /content/drive/MyDrive/protest-predictions-and-models/dev_${model}_${decoding_boolean}_${mode}.zip ./dev.predict
             rm -rf outputs/
     done
     done
