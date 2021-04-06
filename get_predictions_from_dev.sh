@@ -1,4 +1,4 @@
-for model in 100-epoch
+for model in 100-epoch-random
 do
     for decoding in --no-crf-decoding --crf-decoding
     do 
