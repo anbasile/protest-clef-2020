@@ -1,4 +1,4 @@
-for model in 80-epoch
+for model in 100-epoch
 do
     for decoding in --no-crf-decoding --crf-decoding
     do 
